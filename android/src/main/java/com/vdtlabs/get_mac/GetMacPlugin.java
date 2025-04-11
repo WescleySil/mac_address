@@ -12,23 +12,27 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** GetMacPlugin */
 public class GetMacPlugin implements FlutterPlugin, MethodCallHandler {
+  private MethodChannel channel;
+
   @Override
   public void onAttachedToEngine(FlutterPluginBinding flutterPluginBinding) {
-    final MethodChannel channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "get_mac");
-    channel.setMethodCallHandler(new GetMacPlugin());
-  }
-
-  public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), "get_mac");
-    channel.setMethodCallHandler(new GetMacPlugin());
+    channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "get_mac");
+    channel.setMethodCallHandler(this);
   }
 
   @Override
-  public void onMethodCall(MethodCall call,Result result) {
+  public void onDetachedFromEngine(FlutterPluginBinding binding) {
+    if (channel != null) {
+      channel.setMethodCallHandler(null);
+      channel = null;
+    }
+  }
+
+  @Override
+  public void onMethodCall(MethodCall call, Result result) {
     if (call.method.equals("getMacAddress")) {
       result.success(getMacAddress());
     } else {
@@ -36,12 +40,8 @@ public class GetMacPlugin implements FlutterPlugin, MethodCallHandler {
     }
   }
 
-  @Override
-  public void onDetachedFromEngine(FlutterPluginBinding binding) {
-  }
-
   @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-  private String getMacAddress(){
+  private String getMacAddress() {
     try {
       List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
       for (NetworkInterface nif : all) {
@@ -52,7 +52,7 @@ public class GetMacPlugin implements FlutterPlugin, MethodCallHandler {
         }
         StringBuilder res1 = new StringBuilder();
         for (byte b : macBytes) {
-          res1.append(String.format("%02X:",b));
+          res1.append(String.format("%02X:", b));
         }
         if (res1.length() > 0) {
           res1.deleteCharAt(res1.length() - 1);
@@ -60,9 +60,8 @@ public class GetMacPlugin implements FlutterPlugin, MethodCallHandler {
         return res1.toString();
       }
     } catch (Exception ex) {
+      // Log or handle exception
     }
     return "02:00:00:00:00:00";
   }
-
-
 }

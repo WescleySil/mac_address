@@ -24,10 +24,13 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 28
 
+    namespace 'com.vdtlabs.get_mac'
+
     defaultConfig {
         minSdkVersion 16
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     lintOptions {
         disable 'InvalidPackage'
     }
